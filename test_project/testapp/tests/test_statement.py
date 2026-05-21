@@ -1,9 +1,7 @@
 from dataclasses import asdict
 from rest_framework.test import APITestCase
 
-from rest_access_policy import AccessViewSetMixin, AccessPolicy, Statement
-from rest_framework.viewsets import ViewSet
-from rest_framework.permissions import AllowAny
+from rest_access_policy import AccessPolicy, Statement
 
 
 class StatementTestCase(APITestCase):
@@ -12,6 +10,22 @@ class StatementTestCase(APITestCase):
             Statement(principal="*", action="build", effect="veto")
 
         self.assertTrue("effect must be one of" in str(context.exception))
+
+    def test_scalar_values_are_normalized_to_lists(self):
+        statement = Statement(
+            principal="*",
+            action="build",
+            effect="allow",
+            condition="is_sunny",
+            condition_expression="is_sunny or is_cloudy",
+            read_only_fields="status",
+        )
+
+        self.assertEqual(statement.principal, ["*"])
+        self.assertEqual(statement.action, ["build"])
+        self.assertEqual(statement.condition, ["is_sunny"])
+        self.assertEqual(statement.condition_expression, ["is_sunny or is_cloudy"])
+        self.assertEqual(statement.read_only_fields, ["status"])
 
     def test_to_dict(self):
         statement = Statement(
@@ -24,10 +38,11 @@ class StatementTestCase(APITestCase):
         self.assertEqual(
             asdict(statement),
             {
-                "principal": "*",
-                "action": "build",
+                "principal": ["*"],
+                "action": ["build"],
                 "effect": "allow",
                 "condition": [],
                 "condition_expression": ["method1"],
+                "read_only_fields": [],
             },
         )

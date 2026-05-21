@@ -4,8 +4,10 @@ README.txt
 dist/
 drf_access_policy.egg-info
 .vscode
+.idea/
 site/
 venv.sh
 .venv
+venv/
 .coverage
 

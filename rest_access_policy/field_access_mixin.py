@@ -1,5 +1,3 @@
-from typing import List
-
 from rest_framework.request import Request
 
 from .access_policy import AccessPolicy
@@ -10,7 +8,7 @@ class FieldAccessMixin(object):
         self.serializer_context = kwargs.get("context", {})
         super().__init__(*args, **kwargs)
         self._apply_fields_access()
-        self._apply_deprecated_field_permissions()
+        self._apply_read_only_fields()
 
     @property
     def access_policy(self) -> AccessPolicy:
@@ -51,73 +49,38 @@ class FieldAccessMixin(object):
 
         self.fields = fields
 
-    # Old style field-level permissions
-    def _apply_deprecated_field_permissions(self):
+    def _apply_read_only_fields(self):
+        """
+        Force fields listed in a statement's ``read_only_fields`` to read-only
+        on write requests when the requesting user matches the statement's
+        principal. Matching is principal-only (action/effect/condition are not
+        considered here).
+        """
         if self.read_only is True:
             return
 
-        if (
-            self.request.method
-            in [
-                "POST",
-                "PUT",
-                "PATCH",
-            ]
-            and self.field_permissions.get("read_only")
-        ):
-            self._set_read_only_fields()
+        if self.request.method not in ("POST", "PUT", "PATCH"):
+            return
 
-    @property
-    def field_permissions(self) -> dict:
-        access_policy = self.access_policy
-        field_permissions = getattr(access_policy, "field_permissions", {})
+        policy = self.access_policy
+        view = self.serializer_context.get("view")
+        statements = policy().get_policy_statements(self.request, view)
+        user_principals = policy._get_user_principals(self.request)
 
-        if not isinstance(field_permissions, dict):
-            raise Exception(
-                "Field permissions must be set on access_policy for FieldAccessMixin"
-            )
+        for statement in statements:
+            if not statement.read_only_fields:
+                continue
 
-        return field_permissions
+            principals = statement.principal
 
-    def _set_read_only_fields(self):
-        read_only_statements = self._validate_and_clean_statements(
-            self.field_permissions["read_only"]
-        )
+            if "*" not in principals and user_principals.isdisjoint(principals):
+                continue
 
-        statements_matching_principal = (
-            self.access_policy._get_statements_matching_principal(
-                request=self.request, statements=read_only_statements
-            )
-        )
-
-        for statement in statements_matching_principal:
-            if "*" in statement["fields"]:
+            if "*" in statement.read_only_fields:
                 for field in self.fields.values():
                     field.read_only = True
                 break
-            else:
-                for field in statement["fields"]:
-                    if self.fields.get(field, None) is not None:
-                        self.fields[field].read_only = True
 
-    def _validate_and_clean_statements(self, statements: List[dict]) -> List[dict]:
-        for statement in statements:
-            if not isinstance(statement, dict):
-                raise Exception("Must pass a dict as statement")
-
-            if len(statement) == 0:
-                raise Exception("Cannot pass empty dict as statement")
-
-            if statement.get("principal", None) is None:
-                raise Exception("Must pass principal in statement")
-
-            if statement.get("fields", None) is None:
-                raise Exception("Must pass fields in statement")
-
-            if isinstance(statement["principal"], str):
-                statement["principal"] = [statement["principal"]]
-
-            if isinstance(statement["fields"], str):
-                statement["fields"] = [statement["fields"]]
-
-        return statements
+            for field_name in statement.read_only_fields:
+                if self.fields.get(field_name, None) is not None:
+                    self.fields[field_name].read_only = True

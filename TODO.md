@@ -1065,11 +1065,30 @@ irreversible once published.
 
 ## Optional follow-up (decoupled, do not block 13)
 
-- **GitHub repo rename** `LesPrimus/drf-access-policy` → `LesPrimus/drf-access-policy2` for consistency with the PyPI name. NOT required for PyPI (only the `name` in `pyproject.toml` matters). If done:
-  1. Rename on GitHub (web UI or `gh repo rename drf-access-policy2`).
-  2. `git remote set-url origin https://github.com/LesPrimus/drf-access-policy2.git`
-  3. Re-edit the URLs in `pyproject.toml`, `README.md`, and `mkdocs.yml`.
-  4. Commit and push.
+### Matrix testing across Python + Django versions
+
+Task 2 deleted `tox.ini`. We need *some* way to verify the package works
+across the matrix advertised in the PyPI classifiers (Python 3.12/3.13,
+Django 4.2/5.0/5.1). Right now `uv run pytest` only tests against whatever
+`uv.lock` resolved (currently Py 3.14 + Django 6.0.x).
+
+Pick ONE of these (recommendation first):
+
+1. **`nox`** (recommended for local + CI) — Python-configured matrix runner, modern tox alternative, works smoothly with uv. Add `noxfile.py` defining a `@nox.session(python=["3.12", "3.13"])` × `django ∈ {4.2, 5.0, 5.1}` matrix. Add `nox` to `[project.optional-dependencies].dev`. Document `nox -s tests` in README.
+2. **GitHub Actions matrix** — define the matrix in `.github/workflows/test.yml` instead. Simpler if there's no need to reproduce the matrix locally. Uses `actions/setup-python` × a `strategy.matrix` over `python-version` and `django-version`. Pairs well with publishing from GH Actions later.
+3. **`tox` via `pyproject.toml`** — modern tox supports `[tool.tox]` in `pyproject.toml`, no `tox.ini` needed. Keeps muscle memory for contributors used to tox. Slightly heavier than nox.
+
+Acceptance: running the chosen tool exercises the full matrix locally (or in CI), and a failure on any cell is loud. Update the classifiers in `pyproject.toml` to match whatever cells are actually green.
+
+### GitHub repo rename
+
+Rename `LesPrimus/drf-access-policy` → `LesPrimus/drf-access-policy2` for
+consistency with the PyPI name. NOT required for PyPI (only the `name` in
+`pyproject.toml` matters). If done:
+1. Rename on GitHub (web UI or `gh repo rename drf-access-policy2`).
+2. `git remote set-url origin https://github.com/LesPrimus/drf-access-policy2.git`
+3. Re-edit the URLs in `pyproject.toml`, `README.md`, and `mkdocs.yml`.
+4. Commit and push.
 
 ## Gotchas / notes
 

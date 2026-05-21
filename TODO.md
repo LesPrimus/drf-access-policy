@@ -67,6 +67,23 @@ is no `upstream` remote.
 - [x] `test_project/testapp/tests/test_statement.py` — updated for normalized
       fields + new `read_only_fields` (still `APITestCase` style — Task 4 below
       ports it to pytest idiom).
+- [x] **Tasks 3–10 complete.** conftest + all six test files ported to pytest
+      (`test_statement`, `test_view_set_mixin`, `test_view_set`, `test_views`,
+      `test_fields`, `test_access_policy`). Full suite: **49 passed**, no
+      `unittest.TestCase` / `self.assert*` / `setUp` left. Legacy entrypoints
+      (`setup.py`, `tox.ini`, `requirements.*`, `pypi_submit.py`) confirmed gone.
+- [x] **Two infra fixes needed mid-port (not in the original plan):**
+      - `test_project/urls.py`: `django.conf.urls.url` was removed in Django 4.0
+        (env resolves Django 6.x). Switched to `django.urls.path` with plain
+        route strings — without this, every DB/client test errored at import.
+      - `pyproject.toml`: moved dev deps from `[project.optional-dependencies]`
+        to PEP 735 `[dependency-groups]` so `uv sync` installs pytest/pytest-django
+        by default (extras are not synced without `--extra`).
+- [x] Standardized on a single uv-managed `.venv`; removed the stray PyCharm
+      `venv/`. Point the IDE interpreter at `.venv/bin/python`.
+
+> **Remaining: Tasks 11–13** (README rebrand, mkdocs/docs, build & verify wheel)
+> plus the optional matrix-testing / repo-rename follow-ups. Test porting is done.
 
 ---
 

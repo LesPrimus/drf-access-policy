@@ -77,6 +77,14 @@ is no `upstream` remote.
 - [ ] Run the full suite green, then build (`uv build`) and verify wheel/sdist
       contents (must include `rest_access_policy` + `py.typed`). Do NOT upload to
       PyPI without explicit owner go-ahead.
+- [ ] *(Optional, cosmetic — decide before publishing)* Rename the GitHub repo
+      `LesPrimus/drf-access-policy` → `drf-access-policy2` for consistency. NOT
+      required for PyPI (only the `name` in `pyproject.toml` matters) and
+      decoupled from everything else. If done: it's a GitHub-side action by the
+      owner (web UI, or `gh repo rename`); GitHub auto-redirects the old URL, but
+      then update the local remote
+      (`git remote set-url origin https://github.com/LesPrimus/drf-access-policy2.git`)
+      and the project URLs/badges in `pyproject.toml` + `README.md`.
 
 ## Gotchas / notes
 - `pyparsing` API used (`infixNotation`, `opAssoc`, `Keyword`, `Word`) is fine on

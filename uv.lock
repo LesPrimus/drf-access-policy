@@ -55,7 +55,7 @@ dependencies = [
     { name = "pyparsing" },
 ]
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 dev = [
     { name = "django" },
     { name = "pytest" },
@@ -64,13 +64,16 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "django", marker = "extra == 'dev'" },
     { name = "djangorestframework" },
     { name = "pyparsing" },
-    { name = "pytest", marker = "extra == 'dev'" },
-    { name = "pytest-django", marker = "extra == 'dev'" },
 ]
-provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "django" },
+    { name = "pytest" },
+    { name = "pytest-django" },
+]
 
 [[package]]
 name = "iniconfig"

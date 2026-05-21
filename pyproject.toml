@@ -28,7 +28,7 @@ dependencies = [
     "pyparsing",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
     "django",
     "pytest",

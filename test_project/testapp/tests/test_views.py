@@ -1,53 +1,36 @@
-from test_project.settings import MIDDLEWARE
-from django.contrib.auth.models import Group, User
+import pytest
 from rest_framework.reverse import reverse
-from rest_framework.test import APITestCase
-
-from test_project.testapp.models import UserAccount
 
 
-class ViewsTestCase(APITestCase):
-    def setUp(self):
-        UserAccount.objects.all().delete()
-        User.objects.all().delete()
-        Group.objects.all().delete()
+@pytest.mark.django_db
+def test_admin_can_do_anything_with_logs(auth_client):
+    client, _ = auth_client(username="admin", group_names=["admin"])
 
-    def test_admin_can_do_anything_with_logs(self):
-        admin_group = Group.objects.create(name="admin")
-        admin_user = User.objects.create()
-        admin_user.groups.add(admin_group)
-        self.client.force_authenticate(user=admin_user)
+    response = client.get(reverse("get-logs"), format="json")
+    assert response.status_code == 200
 
-        url = reverse("get-logs")
-        response = self.client.get(url, format="json")
-        self.assertEqual(response.status_code, 200)
+    response = client.delete(reverse("delete-logs"), format="json")
+    assert response.status_code == 200
 
-        url = reverse("delete-logs")
-        response = self.client.delete(url, format="json")
-        self.assertEqual(response.status_code, 200)
 
-    def test_dev_can_only_get_logs(self):
-        dev_group = Group.objects.create(name="dev")
-        dev_user = User.objects.create()
-        dev_user.groups.add(dev_group)
-        self.client.force_authenticate(user=dev_user)
+@pytest.mark.django_db
+def test_dev_can_only_get_logs(auth_client):
+    client, _ = auth_client(username="dev", group_names=["dev"])
 
-        url = reverse("get-logs")
-        response = self.client.get(url, format="json")
-        self.assertEqual(response.status_code, 200)
+    response = client.get(reverse("get-logs"), format="json")
+    assert response.status_code == 200
 
-        url = reverse("delete-logs")
-        response = self.client.delete(url, format="json")
-        self.assertEqual(response.status_code, 403)
+    response = client.delete(reverse("delete-logs"), format="json")
+    assert response.status_code == 403
 
-    def test_anonymous_user_can_view_landing_page(self):
-        url = reverse("get-landing-page")
-        response = self.client.get(url, format="json")
-        self.assertEqual(response.status_code, 200)
 
-    def test_authenticated_user_can_view_landing_page(self):
-        user = User.objects.create()
-        self.client.force_authenticate(user=user)
-        url = reverse("get-landing-page")
-        response = self.client.get(url, format="json")
-        self.assertEqual(response.status_code, 200)
+def test_anonymous_user_can_view_landing_page(api_client):
+    response = api_client.get(reverse("get-landing-page"), format="json")
+    assert response.status_code == 200
+
+
+@pytest.mark.django_db
+def test_authenticated_user_can_view_landing_page(auth_client):
+    client, _ = auth_client(username="someone")
+    response = client.get(reverse("get-landing-page"), format="json")
+    assert response.status_code == 200

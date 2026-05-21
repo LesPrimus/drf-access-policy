@@ -1,0 +1,56 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "drf-access-policy2"
+version = "2.0.0"
+description = "Declarative access policies/permissions for Django REST Framework, modeled after AWS IAM. Maintained fork of drf-access-policy."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE.md" }
+authors = [{ name = "LesPrimus", email = "amerigo.armentano@hotmail.it" }]
+keywords = ["django", "restframework", "drf", "access", "policy", "authorization", "declarative"]
+classifiers = [
+    "License :: OSI Approved :: MIT License",
+    "Framework :: Django",
+    "Framework :: Django :: 4.2",
+    "Framework :: Django :: 5.0",
+    "Framework :: Django :: 5.1",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+dependencies = [
+    "djangorestframework",
+    "pyparsing",
+]
+
+[project.optional-dependencies]
+dev = [
+    "django",
+    "pytest",
+    "pytest-django",
+]
+
+[project.urls]
+Homepage = "https://github.com/LesPrimus/drf-access-policy"
+Source = "https://github.com/LesPrimus/drf-access-policy"
+
+[tool.hatch.build.targets.wheel]
+packages = ["rest_access_policy"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "rest_access_policy",
+    "README.md",
+    "LICENSE.md",
+]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "test_project.settings"
+python_files = ["test_*.py"]
+testpaths = ["test_project/testapp/tests"]
+addopts = "-ra"

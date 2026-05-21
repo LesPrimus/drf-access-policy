@@ -11,7 +11,6 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 """
 
 import os
-from distutils.version import StrictVersion
 
 import django
 
@@ -41,10 +40,6 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "test_project.testapp",
 ]
-
-# Django 1.8 requires that abstract model app is in INSTALLED_APPS
-if StrictVersion("1.8") <= StrictVersion(django.__version__) < StrictVersion("1.9"):
-    INSTALLED_APPS.append("django_lifecycle")
 
 
 MIDDLEWARE = [
